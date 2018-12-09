@@ -13,21 +13,24 @@ import Data.Tuple (Tuple(..), fst, snd)
 
 import Calibration
 import Inventory
+import Claims
+
+lls = liftEffect <<< log <<< show
 
 main :: Effect Unit
 main = run [consoleReporter] do
   describe "purescript-spec" do
     describe "calibration" do
       it "works" do
-        liftEffect $ log $ show $ calibration
-        liftEffect $ log $ show $ firstCross
+        lls calibration
+        lls firstCross
     describe "consider" do
       it "miss" do
-        liftEffect $ log $ show (consider cempty 1)
+        lls (consider cempty 1)
       it "miss" do
-        liftEffect $ log $ show (consider (consider cempty 2) 1)
+        lls (consider (consider cempty 2) 1)
       it "hit" do
-        liftEffect $ log $ show (consider (consider (consider cempty 1) 2) 1)
+        lls (consider (consider (consider cempty 1) 2) 1)
     describe "idScore" do
       it "abcdef" do
         shouldEqual (Tuple 0 0) $ idScore "abcdef"
@@ -44,6 +47,20 @@ main = run [consoleReporter] do
       it "ababab" do
         shouldEqual (Tuple 0 1) $ idScore "ababab"
       it "checksum" do
-        liftEffect $ log $ show $ checksum
+        lls checksum
       it "common" do
-        liftEffect $ log $ show $ common
+        lls common
+    describe "claims" do
+      it "parses examples" do
+        lls $ parseClaim "#1 @ 1,3: 4x4"
+        lls $ parseClaim "#2 @ 3,1: 4x4"
+        lls $ parseClaim "#3 @ 5,5: 2x2"
+      it "toTiles" do
+        lls $ toTiles {id:0, x: 1, y: 1, w: 1, h: 1}
+      it "overlapClaims" do
+        lls $ overlapClaims [{id:0, x: 1, y: 1, w: 1, h: 1},  {id:0, x: 1, y: 1, w: 1, h: 1}]
+      it "generates overlap" do
+        lls $ (overlapCount <<< overlapClaims) [{id:0, x: 1, y: 1, w: 1, h: 1},  {id:0, x: 1, y: 1, w: 1, h: 1}]
+        lls $ (overlapCount <<< overlapClaims) <$> claims
+      it "finds separates" do
+        lls $ (nonOverlapping <<< overlapClaims) <$> claims
